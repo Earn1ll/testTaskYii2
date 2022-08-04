@@ -9,6 +9,9 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\SignupForm;
+use app\models\User;
+
 
 class SiteController extends Controller
 {
@@ -20,10 +23,14 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'only' => ['login', 'logout', 'index','about','users','signup','contact'],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['login', 'error'],
+                        'allow' => true,
+                    ],
+                    [
+                        'actions' => ['logout', 'index','about','users','signup','contact'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -64,6 +71,27 @@ class SiteController extends Controller
         return $this->render('index');
     }
 
+    public function actionSignup()
+    {
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
+        }
+        $this->setMeta('Регистрация');
+        $model =new SignupForm();
+        if($model->load(\Yii::$app->request->post()) && $model->validate()){
+            $user = new User();
+            $user->username = $model->username;
+            $user->password = \Yii::$app->security->generatePasswordHash($model->password);
+            if($user->save()){
+                \Yii::$app->user->login($user);
+                return $this->goHome();
+            }
+
+        }
+
+        return $this->render('signup',compact('model'));
+    }
+
     /**
      * Login action.
      *
@@ -81,6 +109,16 @@ class SiteController extends Controller
         }
 
         $model->password = '';
+        if($model->load(\Yii::$app->request->post()) && $model->validate()){
+            $user = new User();
+            $user->username = $model->username;
+            $user->password = \Yii::$app->security->generatePasswordHash($model->password);
+            if($user->save()){
+                \Yii::$app->user->login($user);
+                return $this->goHome();
+            }
+
+        }
         return $this->render('login', [
             'model' => $model,
         ]);
@@ -115,6 +153,7 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+
 
     /**
      * Displays about page.

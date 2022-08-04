@@ -30,7 +30,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'id',
             'login',
-            'pas',
             'inform:ntext',
             [
                 'class' => ActionColumn::className(),
